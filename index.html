@@ -15,43 +15,63 @@
   <div id="app">
     <el-container>
       <el-header>
-        <h3> {{headerTitle}} </h3>
+        <h2> {{headerTitle}} </h2>
       </el-header>
-      <el-container>
-        <el-aside width="450px" style="padding-top: 30px;">
-          <el-form ref="form" label-width="100px">
-            <el-form-item label="漏斗图标题：" class="funnel-form-item">
-              <el-input v-model="form.title"></el-input>
-              <p class="input-tips">提示: 请输入漏斗图的标题。用空格进行分割。</p>
-              <p class="input-tips">例如：曝光 点击 出单</p>
+      <el-container style="margin-left: 20px;">
+        <el-aside width="500px" class="aside-form">
+          <el-form :model="form" ref="form" :rules="rules" label-width="120px">
+            <el-form-item label="漏斗图标题：" class="funnel-form-item" prop="title">
+              <el-input v-model.trim="form.title"></el-input>
             </el-form-item>
-            <el-form-item label="漏斗图数据：" class="funnel-form-item">
-              <el-input v-model="form.data"></el-input>
-              <p class="input-tips">提示: 请输入漏斗图各标题对应的数据量。用空格进行分割。</p>
-              <p class="input-tips">例如：10000 1000 100</p>
+            <p class="input-tips">提示: 请输入漏斗图的标题。用"-"进行分割。</p>
+            <p class="input-tips">例如：曝光-点击-出单</p>
+            <el-form-item label="漏斗图数据：" class="funnel-form-item" prop="data">
+              <el-input v-model.trim="form.data"></el-input>
             </el-form-item>
-            <el-form-item label="漏斗图颜色：" class="funnel-form-item">
-              <el-input v-model="form.color"></el-input>
-              <p class="input-tips">提示: 请输入每个漏斗对应的颜色。用空格进行分割。</p>
-              <p class="input-tips">
-                <span>三项推荐 #339933 #53c453 #75D175</span>
-                <el-button type="primary" plain size="mini" class="form-button" @click="handlePreView('#339933 #53c453 #75D175')">预览</el-button>
-              </p>
-              <p class="input-tips">
-                <span>四项推荐 #1D8633 #339933 #53c453 #75D175</span>
-                <el-button type="primary" plain size="mini" class="form-button" @click="handlePreView('#1D8633 #339933 #53c453 #75D175')">预览</el-button>
-              </p>
-              <p class="input-tips color-preview" v-show="colorList.length">
-                <span class="color-preview-span" v-for="(item, index) in colorList" :key="index" :style="{backgroundColor: item}"></span>
-              </p>
+            <p class="input-tips">提示: 请输入漏斗图各标题对应的数据量。用"-"进行分割。</p>
+            <p class="input-tips">例如：10000-1000-100</p>
+            <el-form-item label="漏斗图比例：" class="funnel-form-item" prop="rate">
+              <el-input v-model.trim="form.rate"></el-input>
             </el-form-item>
+            <p class="input-tips">提示: 请输入每个漏斗的上边边长。用"-"进行分割。</p>
+            <p class="input-tips">
+              <span>三项推荐 150-50-20</span>
+              <el-button type="primary" plain size="mini" class="form-button"
+                @click="handleRateSet('150-50-20')">使用</el-button>
+            </p>
+            <p class="input-tips">
+              <span>四项推荐 150-50-20-10</span>
+              <el-button type="primary" plain size="mini" class="form-button"
+                @click="handleRateSet('150-50-20-10')">使用</el-button>
+            </p>
+            <el-form-item label="漏斗图颜色：" class="funnel-form-item" prop="color">
+              <el-input v-model.trim="form.color"></el-input>
+            </el-form-item>
+            <p class="input-tips">提示: 请输入每个漏斗对应的颜色。用"-"进行分割。</p>
+            <p class="input-tips">
+              <span>三项推荐 #339933-#53c453-#75D175</span>
+              <el-button type="primary" plain size="mini" class="form-button"
+                @click="handlePreView('#339933-#53c453-#75D175')">使用</el-button>
+            </p>
+            <p class="input-tips">
+              <span>四项推荐 #1D8633-#339933-#53c453-#75D175</span>
+              <el-button type="primary" plain size="mini" class="form-button"
+                @click="handlePreView('#1D8633-#339933-#53c453-#75D175')">使用</el-button>
+            </p>
+            <p class="input-tips color-preview" v-show="colorList.length">
+              <span class="color-preview-span" v-for="(item, index) in colorList" :key="index"
+                :style="{backgroundColor: item}"></span>
+            </p>
             <el-form-item>
-              <el-button type="primary" @click="onSubmit">生成漏斗图</el-button>
-              <el-button @click="onReset">重置</el-button>
+              <el-button type="primary" @click="submitForm('form')">生成漏斗图</el-button>
+              <el-button @click="resetForm('form')">重置</el-button>
             </el-form-item>
           </el-form>
         </el-aside>
-        <el-main>Main</el-main>
+        <el-main>
+          <div id="funnel-chart" style="width: 100%; height: 770px;">
+          </div>
+        </el-main>
       </el-container>
     </el-container>
   </div>
@@ -63,26 +83,132 @@
         form: {
           title: '',
           data: '',
-          color: ''
+          rate: '',
+          color: '',
         },
+        rules: {
+          title: [
+            { required: true, message: '请输入漏斗图标题' }
+          ],
+          data: [
+            { required: true, message: '请输入漏斗图数据' }
+          ],
+          rate: [
+            { required: true, message: '请输入漏斗图比例' }
+          ],
+          color: [
+            { required: true, message: '请输入漏斗图颜色' }
+          ]
+        },
+        funnel: '',
       },
-      computed:{
-        colorList(){
-          return this.form.color ? this.form.color.split(' ') : []
+      computed: {
+        titleList() {
+          return this.form.title.split('-')
+        },
+        dataList() {
+          return this.form.data.split('-')
+        },
+        colorList() {
+          return this.form.color.split('-')
+        },
+        rateList() {
+          return this.form.rate.split('-')
         }
       },
+      mounted() {
+        this.funnel = echarts.init(document.getElementById('funnel-chart'))
+      },
       methods: {
-        onSubmit() {
-          console.log('点击了生成按钮')
-        },
-        onReset() {
-          Object.keys(this.form).forEach(key => {
-            this.form[key] = ''
-          })
-        },
         // 预览颜色
         handlePreView(colorString) {
           this.form.color = colorString
+        },
+        // 设置比例
+        handleRateSet(rateString) {
+          this.form.rate = rateString
+        },
+        submitForm(formName) {
+          this.$refs[formName].validate((valid) => {
+            if (valid) {
+              if (this.titleList.length === this.dataList.length && this.titleList.length === this.colorList.length && this.titleList.length === this.rateList.length) {
+                this.createFunnel()
+              } else {
+                this.$message.error('漏斗图参数数量不一致')
+              }
+            } else {
+              return false;
+            }
+          });
+        },
+        resetForm(formName) {
+          this.$refs[formName].resetFields();
+        },
+        createFunnel() {
+          let funnelList = this.rateList.map((item, index) => {
+            return {
+              value: item,
+              name: this.dataList[index],
+              label: this.titleList[index]
+            }
+          });
+          const options = {
+            title: {
+              text: ''
+            },
+            toolbox: {
+              feature: {
+                saveAsImage: {}
+              }
+            },
+            legend: {
+              textStyle: {
+                fontSize: '18px'
+              },
+              top: 20,
+              formatter: function (name) {
+                return funnelList.find((item) => item.name === name).label;
+              }
+            },
+            series: [
+              {
+                color: this.colorList,
+                name: 'Funnel',
+                type: 'funnel',
+                left: '10%',
+                top: 70,
+                bottom: 60,
+                width: '75%',
+                min: 0,
+                max: 100,
+                minSize: '0%',
+                maxSize: '100%',
+                sort: 'descending',
+                gap: 2,
+                label: {
+                  textStyle: {
+                    fontSize: '18px',
+                    color: '#fff'
+                  },
+                  show: true,
+                  position: 'inside'
+                },
+                labelLine: {
+                  length: 10,
+                  lineStyle: {
+                    width: 1,
+                    type: 'solid'
+                  }
+                },
+                itemStyle: {
+                  borderColor: '#fff',
+                  borderWidth: 1
+                },
+                data: funnelList
+              }
+            ]
+          };
+          this.funnel.setOption(options)
         }
       }
     })
@@ -92,26 +218,41 @@
   .el-header {
     text-align: center;
   }
+
+  .aside-form {
+    padding-top: 100px;
+    padding-right: 30px;
+  }
+
   .funnel-form-item {
     margin-bottom: 16px;
   }
+
   .input-tips {
-    margin: 8px 0;
+    margin: 4px 0;
+    margin-left: 120px;
     line-height: 16px;
     font-size: 12px;
     color: #8a8c91;
   }
+
   .form-button {
-    padding: 6px 14px;
+    padding: 4px 14px;
   }
+
   .color-preview {
     display: flex;
   }
+
   .color-preview-span {
     width: 24px;
     height: 24px;
     margin-right: 4px;
     border-radius: 4px;
+  }
+
+  .funnel-title {
+    text-align: center;
   }
 </style>
 
