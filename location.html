@@ -1,17 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
 </head>
+
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <el-container>
+      <el-header>
+        <h3> {{headerTitle}} </h3>
+      </el-header>
+      <el-container>
+        <el-aside width="450px" style="padding-top: 30px;">
+          <el-form ref="form" label-width="100px">
+            <el-form-item label="漏斗图标题：" class="funnel-form-item">
+              <el-input v-model="form.title"></el-input>
+              <p class="input-tips">提示: 请输入漏斗图的标题。用空格进行分割。</p>
+              <p class="input-tips">例如：曝光 点击 出单</p>
+            </el-form-item>
+            <el-form-item label="漏斗图数据：" class="funnel-form-item">
+              <el-input v-model="form.data"></el-input>
+              <p class="input-tips">提示: 请输入漏斗图各标题对应的数据量。用空格进行分割。</p>
+              <p class="input-tips">例如：10000 1000 100</p>
+            </el-form-item>
+            <el-form-item label="漏斗图颜色：" class="funnel-form-item">
+              <el-input v-model="form.color"></el-input>
+              <p class="input-tips">提示: 请输入每个漏斗对应的颜色。用空格进行分割。</p>
+              <p class="input-tips">
+                <span>三项推荐 #339933 #53c453 #75D175</span>
+                <el-button type="primary" plain size="mini" class="form-button" @click="handlePreView('#339933 #53c453 #75D175')">预览</el-button>
+              </p>
+              <p class="input-tips">
+                <span>四项推荐 #1D8633 #339933 #53c453 #75D175</span>
+                <el-button type="primary" plain size="mini" class="form-button" @click="handlePreView('#1D8633 #339933 #53c453 #75D175')">预览</el-button>
+              </p>
+              <p class="input-tips color-preview" v-show="colorList.length">
+                <span class="color-preview-span" v-for="(item, index) in colorList" :key="index" :style="{backgroundColor: item}"></span>
+              </p>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="onSubmit">生成漏斗图</el-button>
+              <el-button @click="onReset">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-aside>
+        <el-main>Main</el-main>
+      </el-container>
+    </el-container>
+  </div>
   <script>
-    const ap = document.getElementById('app');
-    // 获取当前地理位置
-    console.log(navigator.platform);
-    // 获取当前地理位置
+    var app = new Vue({
+      el: '#app',
+      data: {
+        headerTitle: '巨大巨大超级超级低级的漏斗图生成工具',
+        form: {
+          title: '',
+          data: '',
+          color: ''
+        },
+      },
+      computed:{
+        colorList(){
+          return this.form.color ? this.form.color.split(' ') : []
+        }
+      },
+      methods: {
+        onSubmit() {
+          console.log('点击了生成按钮')
+        },
+        onReset() {
+          Object.keys(this.form).forEach(key => {
+            this.form[key] = ''
+          })
+        },
+        // 预览颜色
+        handlePreView(colorString) {
+          this.form.color = colorString
+        }
+      }
+    })
   </script>
 </body>
+<style>
+  .el-header {
+    text-align: center;
+  }
+  .funnel-form-item {
+    margin-bottom: 16px;
+  }
+  .input-tips {
+    margin: 8px 0;
+    line-height: 16px;
+    font-size: 12px;
+    color: #8a8c91;
+  }
+  .form-button {
+    padding: 6px 14px;
+  }
+  .color-preview {
+    display: flex;
+  }
+  .color-preview-span {
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+    border-radius: 4px;
+  }
+</style>
+
 </html>
