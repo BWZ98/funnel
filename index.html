@@ -21,17 +21,17 @@
         <el-aside width="500px" class="aside-form">
           <el-form :model="form" ref="form" :rules="rules" label-width="120px">
             <el-form-item label="漏斗图标题：" class="funnel-form-item" prop="title">
-              <el-input v-model.trim="form.title"></el-input>
+              <el-input v-model.trim="form.title" clearable></el-input>
             </el-form-item>
             <p class="input-tips">提示: 请输入漏斗图的标题。用"-"进行分割。</p>
             <p class="input-tips">例如：曝光-点击-出单</p>
             <el-form-item label="漏斗图数据：" class="funnel-form-item" prop="data">
-              <el-input v-model.trim="form.data"></el-input>
+              <el-input v-model.trim="form.data" clearable></el-input>
             </el-form-item>
             <p class="input-tips">提示: 请输入漏斗图各标题对应的数据量。用"-"进行分割。</p>
             <p class="input-tips">例如：10000-1000-100</p>
             <el-form-item label="漏斗图比例：" class="funnel-form-item" prop="rate">
-              <el-input v-model.trim="form.rate"></el-input>
+              <el-input v-model.trim="form.rate" clearable></el-input>
             </el-form-item>
             <p class="input-tips">提示: 请输入每个漏斗的上边边长。用"-"进行分割。</p>
             <p class="input-tips">
@@ -45,7 +45,7 @@
                 @click="handleRateSet('150-50-20-10')">使用</el-button>
             </p>
             <el-form-item label="漏斗图颜色：" class="funnel-form-item" prop="color">
-              <el-input v-model.trim="form.color"></el-input>
+              <el-input v-model.trim="form.color" clearable></el-input>
             </el-form-item>
             <p class="input-tips">提示: 请输入每个漏斗对应的颜色。用"-"进行分割。</p>
             <p class="input-tips">
@@ -119,6 +119,9 @@
       mounted() {
         this.funnel = echarts.init(document.getElementById('funnel-chart'))
       },
+      beforeDestroy() {
+        this.funnel && this.funnel.dispose()
+      },
       methods: {
         // 预览颜色
         handlePreView(colorString) {
@@ -143,8 +146,10 @@
         },
         resetForm(formName) {
           this.$refs[formName].resetFields();
+          this.funnel && this.funnel.clear()
         },
         createFunnel() {
+          this.funnel && this.funnel.clear()
           let funnelList = this.rateList.map((item, index) => {
             return {
               value: item,
@@ -209,6 +214,7 @@
             ]
           };
           this.funnel.setOption(options)
+          this.funnel.resize()
         }
       }
     })
@@ -220,11 +226,12 @@
   }
 
   .aside-form {
-    padding-top: 100px;
+    padding-top: 80px;
     padding-right: 30px;
   }
 
   .funnel-form-item {
+    margin-top: 20px;
     margin-bottom: 16px;
   }
 
